@@ -400,11 +400,15 @@
 				, state
 			;
 
+			// disable "trigger" method
+			this._silent	= true;
+
 			while( i-- ){
 				this._mods[mods[i][1]] = state = mods[i][2] ? mods[i][2].substr(1) : true;
 				this._emitMod(mods[i][1], state);
 			}
 
+			this._silent	= false;
 
 			if( typeof bindAll == 'string' ) bindAll = bindAll.split(_rspace);
 			bindAll.push('_onFocusOut');
@@ -864,7 +868,7 @@
 		},
 
 		trigger: function (event, args){
-			this.$el.trigger(event, args);
+			if( !this._silent ) this.$el.trigger(event, args);
 			return	this;
 		},
 
