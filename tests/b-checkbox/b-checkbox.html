@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>b-checkbox :: TESTS :: jQuery BEM</title>
+
+	<link href="../../static/style.css" rel="stylesheet"/>
+	<link href="../qunit/qunit.css" rel="stylesheet"/>
+
+	<script src="http://code.jquery.com/jquery-1.7.2.js"></script>
+	<script src="../jquery.simulate.js"></script>
+
+	<script src="../qunit/qunit.js"></script>
+	<script src="../utils.js"></script>
+
+	<script src="../../jquery.bem.js"></script>
+	<script src="../../bem/jquery.bem.control.js"></script>
+
+	<script src="b-checkbox.js"></script>
+</head>
+<body>
+	<h1 id="qunit-header">b-checkbox</h1>
+	<h2 id="qunit-banner"></h2>
+	<div id="qunit-testrunner-toolbar"></div>
+	<h2 id="qunit-userAgent"></h2>
+	<ol id="qunit-tests"></ol>
+
+	<div style="margin: 30px;">
+		<a id="cbx1" class="js-tab b-checkbox"><span class="b-checkbox__checkmark"><input type="checkbox"/></span></a>
+		<a></a>
+
+		<a id="cbx2" class="js-tab b-checkbox"><span class="b-checkbox__checkmark"><input type="checkbox"/></span></a>
+		<a></a>
+
+		<label for="cbx3">
+			<a class="js-tab b-checkbox"><span class="b-checkbox__checkmark"><input id="cbx3" type="checkbox"/></span></a>
+			<span id="cbx3text">cbx3</span>
+		</label>
+		<a></a>
+
+		<label for="cbx-in-label">
+			<a id="b-cbx-in-label" class="js-tab b-checkbox"><span class="b-checkbox__checkmark"><input id="cbx-in-label" type="checkbox"/></span></a>
+			<span id="cbx-in-label-text">cbx-in-label</span>
+		</label>
+		<a></a>
+
+		<a id="b-cbx-label" class="js-tab b-checkbox"><span class="b-checkbox__checkmark"><input id="cbx-label" type="checkbox"/></span></a>
+		<label for="cbx-label">cbx-label</label>
+		<a></a>
+	</div>
+</body>
+</html>

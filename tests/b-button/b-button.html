@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>b-button :: TESTS :: jQuery BEM</title>
+
+	<link href="../../static/style.css" rel="stylesheet"/>
+	<link href="../qunit/qunit.css" rel="stylesheet"/>
+
+	<script src="http://code.jquery.com/jquery-1.7.2.js"></script>
+	<script src="../jquery.simulate.js"></script>
+
+	<script src="../qunit/qunit.js"></script>
+	<script src="../utils.js"></script>
+
+	<script src="../../jquery.bem.js"></script>
+	<script src="../../bem/jquery.bem.control.js"></script>
+
+	<script src="b-button.js"></script>
+</head>
+<body>
+	<h1 id="qunit-header">b-button</h1>
+	<h2 id="qunit-banner"></h2>
+	<div id="qunit-testrunner-toolbar"></div>
+	<h2 id="qunit-userAgent"></h2>
+	<ol id="qunit-tests"></ol>
+
+	<div style="margin: 30px;">
+		<a id="btn0" class="js-tab b-button">btn0</a>
+		<a id="btn1" class="js-tab b-button">btn1</a>
+		<a class="b-button"></a>
+		<a id="btn2" class="js-tab b-button">btn2<input/></a>
+		<a class="b-button"></a>
+		<a id="btn3" class="js-tab b-button b-button_disabled">Disabled</a>
+		<a id="btn4" class="b-button">...</a>
+		<a id="btn5" class="b-button">...</a>
+		<a id="btn6" class="js-tab b-button">btn6</a>
+	</div>
+</body>
+</html>

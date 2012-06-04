@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>b-dropdown :: TESTS :: jQuery BEM</title>
+
+	<link href="../../static/style.css" rel="stylesheet"/>
+	<link href="../qunit/qunit.css" rel="stylesheet"/>
+
+	<script src="http://code.jquery.com/jquery-1.7.2.js"></script>
+	<script src="../jquery.simulate.js"></script>
+
+	<script src="../qunit/qunit.js"></script>
+	<script src="../utils.js"></script>
+
+	<script src="../../jquery.bem.js"></script>
+	<script src="../../bem/jquery.bem.control.js"></script>
+	<script src="../../bem/jquery.bem.list.js"></script>
+	<script src="../../bem/jquery.bem.dropdown.js"></script>
+
+	<script src="b-dropdown.js"></script>
+	<style>
+		.b-dropdown__list { display: none; }
+		.b-dropdown__list_expanded { display: block; }
+	</style>
+</head>
+<body>
+	<h1 id="qunit-header">b-dropdown</h1>
+	<h2 id="qunit-banner"></h2>
+	<div id="qunit-testrunner-toolbar"></div>
+	<h2 id="qunit-userAgent"></h2>
+	<ol id="qunit-tests"></ol>
+
+	<div style="margin: 30px;">
+		<!--
+		<div id="red" class="js-tab" style="margin: 20px; padding: 30px; border: 2px solid red">
+			<input/>
+			<div id="green" style="margin: 20px; padding: 30px; border: 2px solid green">
+				<input/>
+				<div id="blue" style="margin: 20px; padding: 30px; border: 2px solid blue">
+					<input/>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			$('#red, #green, #blue').on('focus blur focusin focusout', function (evt){
+				var target = evt.target;
+				console.log('['+this.id +' -> '+ target.id+'].on("'+evt.type+'")', evt);
+			});
+		</script>
+		-->
+
+		<div id="dropdown" class="b-dropdown">
+			<div class="js-tab b-dropdown__link">handle</div>
+			<div class="b-dropdown__list">
+				<div class="js-text">text</div>
+				<div class="b-dropdown__list__item">1</div>
+				<div class="b-dropdown__list__item">2</div>
+				<div class="b-dropdown__list__item b-dropdown__list__item_disabled">3</div>
+			</div>
+		</div>
+		<div class="js-tab"></div>
+
+		<div id="dropdown2" class="b-dropdown">
+			<div class="js-tab b-dropdown__link">handle</div>
+			<div class="b-dropdown__list">
+				<div class="js-text">text</div>
+				<div class="b-dropdown__list__item">1</div>
+				<div class="b-dropdown__list__item">2</div>
+				<div class="b-dropdown__list__item b-dropdown__list__item_disabled">3</div>
+			</div>
+		</div>
+		<div class="js-tab"></div>
+
+		<div id="dropdown-input" class="js-tab b-dropdown">
+			<div class="b-dropdown__link">handle</div>
+			<div class="b-dropdown__list">
+				<div>
+					<a class="js-text">text</a>
+					<input type="text" class="js-input-1" />
+					<input type="text" class="js-input-2" />
+				</div>
+				<div class="b-dropdown__list__item">1</div>
+				<div class="b-dropdown__list__item">2</div>
+				<div class="b-dropdown__list__item b-dropdown__list__item_disabled">3</div>
+			</div>
+		</div>
+
+
+		<div class="js-tab b-button">ok</div>
+
+	</div>
+</body>
+</html>
