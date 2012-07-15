@@ -138,7 +138,8 @@ $.extend( $.simulate.prototype, {
 					altKey: options.altKey,
 					shiftKey: options.shiftKey,
 					metaKey: options.metaKey,
-					keyCode: options.keyCode,
+					which: options.which,
+					keyCode: options.keyCode || options.which,
 					charCode: options.charCode
 				});
 			}
@@ -272,6 +273,11 @@ $.extend( $.simulate.prototype, {
 
 		$next.simulate('focus');
 		$next.simulate('keyup', { keyCode: 9, which: 9 });
+	},
+
+	simulateKey: function (){
+		this.simulateEvent(this.target, 'keydown', this.options);
+		this.simulateEvent(this.target, 'keyup', this.options);
 	}
 });
 
