@@ -2,14 +2,11 @@
  * @require	jquery.bem
  */
 (function ($, noop, undef){
-	noop = $.noop;
-
-
 	/**
 	 * Abstract control
 	 */
-	$.bem([null, 'b-control'], {
-		bindAll: '_setLoadingMod',
+	$.bem('b-control', {
+		boundAll: '_setLoadingMod',
 
 		onMod: {
 			disabled: function (state){
@@ -17,7 +14,6 @@
 
 				// Save current href
 				this._href = this.href();
-
 
 				this
 					.$aria(attrs)
@@ -80,7 +76,8 @@
 		onClick: noop,
 		onLoadingDelay:[.65, .35],
 
-		onFocusHotKeyCheck: $.noop,
+		onFocusHotKeyCheck: noop,
+
 
 		onFocusHotKey: function (evt){
 			this.onClick(evt);
@@ -117,16 +114,15 @@
 
 	}, {
 		mods: 'hover press focus',
-		live: {
-			leftclick: 'onClick'
-		}
+		live: { leftclick: 'onClick' },
+		abstract: true
 	});
 
 
 	/**
 	 * Button
 	 */
-	$.bem(['b-control', 'b-button'], {
+	$.bem('b-button', 'b-control', {
 		role: 'button',
 
 		onMod: {
@@ -153,7 +149,7 @@
 	/**
 	 * Checkbox
 	 */
-	$.bem(['b-control', 'b-checkbox'], {
+	$.bem('b-checkbox', 'b-control', {
 		role: 'checkbox',
 
 		onMod: {
@@ -162,11 +158,11 @@
 
 				this
 					.$aria(attrs)
-					[this._checkedLock ? 'F' : '$prop'](':checkbox', attrs)
+					[this._checkedLock ? 'F' : '$prop'](':input', attrs)
 				;
 
-				if( !this._chengeEmitLock ){
-					this.$(':checkbox').trigger({ type: 'change', isBEM: true });
+				if( !this._changeEmitLock ){
+					this.$(':input').trigger({ type: 'change', isBEM: true });
 				}
 
 				this.trigger({ type: 'checked', state: state });
@@ -174,14 +170,19 @@
 		},
 
 		onClick: function (evt){
-			var $cbx = $(evt.target), type = evt.type, emit = type == 'keyup';
+			var
+				  $elm	= $(evt.target)
+				, type	= evt.type
+				, emit	= type == 'keyup'
+				, isInp	= $elm.is(':input')
+			;
 
-			if( evt.isBEM || (type == 'leftclick' && $cbx.is(':checkbox')) ) return;
+			if( evt.isBEM || (type == 'leftclick' && isInp) ) return;
 
 			this._checkedLock = false;
 
-			if( !$cbx.is(':checkbox') && evt.type == 'leftclick' ){
-				if( $cbx.closest('label')[0] ){
+			if( !isInp && evt.type == 'leftclick' ){
+				if( $elm.closest('label')[0] ){
 					this._checkedLock = true;
 				} else {
 					emit = true;
@@ -192,21 +193,61 @@
 				evt.preventDefault();
 			}
 
-			this._chengeEmitLock = !emit;
-			this.toggleMod('checked', type == 'change' ? $cbx.prop('checked') : undef);
-			this._chengeEmitLock = false;
-		},
+			this._changeEmitLock = !emit;
 
-		val: function (){
-			return	this.$(':checkbox').val();
+			if( this.role == 'radio' ){
+				this.addMod('checked');
+			} else {
+				this.toggleMod('checked', type == 'change' ? $elm.prop('checked') : undef);
+			}
+
+			this._changeEmitLock = false;
 		}
 
 	}, {
-		cache: true,
+		cache:	true,
+		live:	{ change: 'onClick' }
+	});
+
+
+
+	/**
+	 * Radio
+	 */
+	$.bem('b-radio', 'b-checkbox', {
+		role: 'radio',
+
+		onMod: {
+			'checked_yes': function (){
+				this._uncheckAll();
+			}
+		},
+
+		_uncheckAll: function (){
+			var
+				  cur = this.$(':input')[0]
+				, group = document.getElementsByName(cur.name)
+				, i = group.length
+				, radio
+				, $dummy = $({})
+			;
+
+			while( i-- ){
+				radio = group[i];
+				if( radio.type == 'radio' && radio !== cur ){
+					$dummy[0] = radio;
+					$dummy.trigger('uncheck');
+				}
+			}
+		}
+
+	}, {
 		live: {
-			change: function(evt){
-				this.onClick(evt);
+			uncheck: function (){
+				this._changeEmitLock = true;
+				this.delMod('checked');
+				this._changeEmitLock = false;
 			}
 		}
 	});
-})(jQuery);
+})(jQuery, jQuery.noop);

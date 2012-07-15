@@ -3,16 +3,17 @@
  * https://github.com/RubaXa/jquery.bem#readme
  *
  * @author	RubaXa	<trash@rubaxa.org>
- * @build	bem/jquery.bem.control bem/jquery.bem.list bem/jquery.bem.dropdown bem/jquery.bem.filter
+ * @build	bem/jquery.bem.control bem/jquery.bem.list bem/jquery.bem.dropdown bem/jquery.bem.filter bem/jquery.bem.select
  */
 
 (function (window, document, $, undef){
 	'use strict';
 
 	var
-		  F = function (){} // Фцнкция пустышка
+		  F = function (){} // Функция пустышка
 		, $dummy = $({})
 		, _slice = [].slice
+		, addEvent = 'addEventListener'
 
 		, _idAttr = 'bemId' // название атрибута в котором храниться id экземпляра класса
 		, _queue = 0 // Сколько ждут активации
@@ -47,6 +48,14 @@
 			, mouseleave:	['hover', _no]
 		},
 
+		_eachBySpace = function (list, fn, ctx, i){
+			list = $.trim(list).split(_rspace);
+			i = list.length;
+			while( i-- ){
+				fn.call(ctx, list[i], i);
+			}
+		},
+
 		_matchAll = function (regexp, val){
 			var ret = [], match;
 			while( match = regexp.exec(val) ){
@@ -65,6 +74,11 @@
 				} : method;
 		},
 
+		/**
+		 * @param	{Object}	target
+		 * @param	{Object}	methods
+		 * @param	{Object}	[parents]
+		 */
 		_inherit = function (target, methods, parents){
 			for( var key in methods ){
 				target[key] = parents ? _makeParent(methods[key], parents[key]) : methods[key];
@@ -72,7 +86,7 @@
 		},
 
 
-		_proxy = function (ctx, fn, args){
+		_bound = function (ctx, fn, args){
 			if( typeof fn == 'string' ) fn = ctx[fn];
 			if( args === undef ) args = [];
 			return	fn === undef ? fn : fn.bind ? fn.bind.apply(fn, [ctx].concat(args)) : function (){ return fn.apply(ctx, args.concat(_slice.call(arguments))); };
@@ -80,7 +94,10 @@
 
 
 		_findInst = function(node, BEM, name){
-			var Inst = _collector[node.getAttribute(_idAttr)], className = ' '+node.className+' ';
+			var
+				  Inst = _collector[node.getAttribute(_idAttr)]
+				, className = ' '+node.className+' '
+			;
 
 			if( Inst === undef ){
 				if( BEM === undef || !~className.indexOf(' '+BEM.getName()+' ') ){
@@ -93,7 +110,7 @@
 					}
 				}
 
-				if( BEM !== false && Inst === undef ){
+				if( Inst === undef && (name in _classes || BEM) ){
 					Inst = (_classes[name] || BEM).init(node, undef, name);
 				}
 			}
@@ -101,7 +118,11 @@
 			return	Inst;
 		},
 
-		_garbageCollectId
+		returnFalse = function (){ return false;},
+
+		_nodeInserted = [],
+		_nodeInsertedId,
+		_nodeRemovedId
 	;
 
 
@@ -126,10 +147,16 @@
 
 
 	// jQuery extensions
+	$.expr[':'].isVisible = function (node){
+		return	node.offsetHeight > 5;
+	};
+
+
 	$.is = function (elm, sel){
 		$dummy[0] = elm;
 		return	$dummy.is(sel);
 	};
+
 
 	$.fn.hasOn = function (name, fn){
 		var events = this.data('events'), ns = name.split('.'), i, has = false;
@@ -172,35 +199,41 @@
 			}
 		;
 
-		// Переносим все статические методы
+		// Переносим все статические методы и свойства
 		for( key in this ) if( self.hasOwnProperty(key) ){
 			New[key] = self[key];
 		}
 
-		// Меняем текущий прототип для функции-пустышки, на текущий, тк наследуем методы
+		New.lazy =
+		New.cache =
+		New.forced =
+		New.abstract = false;
+
+		// Меняем прототип функции-пустышки, на текущий
 		F.prototype = proto;
 
-		// Наследуемся
+		// Наследуем
 		New.fn =
 		New.prototype = new F;
 
 		// Устанавливаем ссылку на "себя", для доступа к статическим методам
-		New.fn.__self = New;
+		New.fn.self = New;
 
 		// Сохраняем название селектора, для которого мы создали этот класс
 		New._name = name;
 
 		// Определяем статические методы, если таковые есть
 		if( statics ){
-			_inherit(New.live = {}, self.live);
-			_inherit(New.live, statics.live || {}, self.live);
-			delete statics.live;
+			$.each(['events', 'live'], function (i, name){
+				_inherit(New[name] = {}, self[name]);
+				_inherit(New[name], statics[name] || {}, self[name]);
+				delete statics[name];
+			});
 
-			for( key in statics ){
-				New[key] = statics[key];
-			}
+			_inherit(New, statics);
 		}
 
+		// Переносим обработчики от родителя
 		_inherit(onMod, proto.onMod);
 
 		// Переопределяем методы класса
@@ -226,17 +259,8 @@
 	};
 
 
-	Element.methods = function (methods){
-		var fn = this.fn;
-		_inherit(fn.onMod, methods.onMod || {}, fn.onMod);
-	};
-
-
 	// Определяем статические методы
 	$.extend(Element, {
-		_body: undef,
-		_name: undef, //  название селектора
-
 		/**
 		 * Еденый обработчик событий для всех эклемпляров
 		 *
@@ -247,13 +271,31 @@
 			this.find(evt.currentTarget)._onEvent(evt);
 		},
 
+
 		$win: $(window),
 		$doc: $(document),
 
+
 		/**
-		 * Ленивая (отложенная) загрузка
+		 * Ленивая (отложенная) инициализация
 		 */
 		lazy: false,
+
+
+		/**
+		 * Инициализировать элементы в принудительном порядке
+		 */
+		forced: false,
+
+
+		/**
+		 * Абстрактный элемент, не добавляется в очеред на инициализацуию
+		 */
+		abstract: false,
+
+
+		mods: '',
+
 
 		/**
 		 * Список live-событий и их обработчиков
@@ -261,69 +303,79 @@
 		live: {},
 
 
-		mods: '',
+		/**
+		 * Список событий, которые нужно повесить при инициализации элемента
+		 */
+		events: {},
+
 
 		/**
 		 * Инициализация/создание инстанса
 		 *
-		 * @param {HTMLElement} node
-		 * @param {Event} [evt]
-		 * @param {String} [name]
-		 * @returns {Element}
+		 * @param	{HTMLElement} node
+		 * @param	{Event}		[evt]
+		 * @param	{String}	[name]
+		 * @return	{Element}
 		 */
 		init: function (node, evt, name){
 			var
 				  self	= this
-				, live = []
+				, live	= []
 				, i
 				, j
 			;
 
 
 			if( !self.active ){
-				self.active = true;
+				self.active = !self.abstract;
 
 				if( self.mods ) $.each(self.mods.split(_rspace), function (i, mod){
 					live.push(_autoMods[mod] || '');
 				});
 
 				// Соберем массив событий, которые нужно делегировать
-				i = {};
+				i = {}; // сюда будем собирать функции-слушатели
 				$.each(self.live, function (name, fn){
 					name = $.trim(name).toLowerCase().split(_rspace);
-					for( j = 0; j < name.length; j++ ){
+					j = name.length;
+					while( j-- ){
 						i[name[j]] = fn;
-						live.push(name[j]);
+						if( $.inArray(name[j], live) == -1 ){
+							live.push(name[j]);
+						}
 					}
 				});
 				self.live = i;
 
-				live = live.join(' ').split(_rspace);
-				i = live.length;
 
-				while( i-- ) {
-					j = i;
-					while( j-- ) if( live[i] == live[j] ){
-						live.splice(i, 1);
-						break;
-					}
+				if( self.active ){
+					$(self.getBody()).on(live.join(' '), '.'+self.getName(), _bound(self, '_onEvent'));
 				}
-
-				$(self.getBody()).on(live.join(' '), '.'+self.getName(), _proxy(self, '_onEvent'));
+				else if( node ){
+					$(node).on(live.join(' '), _bound(self, '_onEvent'));
+				}
 			}
 
 
-			if( node ){
+			if( node && !node.getAttribute(_idAttr) ){
 				var Inst = new this(node, name), type;
+
 				if( evt ){
 					type = evt.type;
-					if( type == 'mouseover' ) evt.type = 'mouseenter';
 					Inst._onEvent(evt);
+
+					if( type == 'mouseover' ){
+						evt.type = 'mouseenter';
+						Inst._onEvent(evt);
+					}
+
 					evt.type = type;
 				}
+
 				return	Inst;
 			}
 		},
+
 
 		getBody: function (){
 			return	this._body || this.$doc;
@@ -333,27 +385,51 @@
 		/**
 		 * Найти или создать экземпляр класса, который отвечает за поведения данного нода
 		 *
-		 * @param {HTMLElement} node
-		 * @returns {Element}
+		 * @param	{HTMLElement}	node
+		 * @returns	{Element}
 		 */
 		find: function (node){
 			return	_findInst(node, this);
 		},
 
+
 		getName: function (){
 			return	this._name;
+		},
+
+
+		override: function (methods, statics){
+			if( methods ){
+				var fn = this.fn;
+				if( methods.onMod ){
+					_inherit(fn.onMod, methods.onMod, fn.onMod);
+					delete methods.onMod;
+				}
+				_inherit(fn, methods, fn);
+			}
+
+			if( statics ){
+				_inherit(this, statics, this);
+			}
 		}
 	});
 
 
 	// Element methods
 	Element.fn = Element.prototype = {
-		__self: Element,
+		self: Element,
 
 		onMod: { '*': F },
-		bindAll: [],
 
+		boundAll: '',
+		debounceAll: '',
+
+
+		/**
+		 * Кешировать все выборки
+		 */
 		cache: false,
+
 
 		/**
 		 * Lego
@@ -365,8 +441,8 @@
 		__lego: function (node, name){
 			$.extend(this, (node.onclick || $.noop)() || {});
 
-			this.name	= name || this.__self.getName();
-			this.cache	= this.__self.cache;
+			this.name	= name || this.self.getName();
+			this.cache	= this.self.cache;
 
 			this.$el	= $(node).removeAttr('onclick');
 			this.el		= this.$el[0];
@@ -374,16 +450,16 @@
 			this._mods	= {};
 			this._cache	= {};
 
-			_collector[$.guid] = this;
+			_collector[this.uniqId] = this;
 
-			var attrs = this.__self.attrs || {};
+			var attrs = this.self.attrs || {};
 			attrs[_idAttr] = this.uniqId;
 			if( this.role ) attrs.role = this.role;
 
 			this.$attr(attrs);
 
-			if( this.__self.lazy ){
-				this.gap('ready')();
+			if( this.self.lazy ){
+				this.debounce('ready')();
 			} else {
 				this.ready();
 			}
@@ -394,7 +470,8 @@
 
 			// Extract all modifiers
 			var
-				  bindAll = this.bindAll
+				  boundAll = this.boundAll
+				, debounceAll = this.debounceAll
 				, mods = _matchAll(new RegExp('\\b'+this.name+'_([a-zA-Z0-9-]+)(_[a-zA-Z0-9-]+)?\\b', 'g'), this.el.className)
 				, i = mods.length
 				, state
@@ -410,11 +487,19 @@
 
 			this._silent	= false;
 
-			if( typeof bindAll == 'string' ) bindAll = bindAll.split(_rspace);
-			bindAll.push('_onFocusOut');
-			for( i = bindAll.length; i--; ){
-				this[bindAll[i]] = this.proxy(bindAll[i]);
-			}
+
+			// Bind all
+			_eachBySpace(boundAll+' _onFocusOut', function (name){
+				this[name] = this.bound(name);
+			}, this);
+
+
+			// Debounce all
+			_eachBySpace(debounceAll, function (name){
+				name = name.split(':');
+				this[name[0]] = this.debounce(name[0], name[1]);
+			}, this);
+
 
 			this._init();
 			this._onEvent(true);
@@ -444,14 +529,15 @@
 				while( evt = this._qevents.shift() ){
 					this._onEvent(evt);
 				}
-			} else {
+			}
+			else {
 				this._qevents.push(evt);
 			}
 		},
 
 
 		/**
-		 * Единый обработчик события
+		 * Единый обработчик событий
 		 *
 		 * @private
 		 * @param {Event} evt
@@ -460,7 +546,7 @@
 			var
 				  type = evt.type
 				, mod = _eventMod[type]
-				, self = this.__self
+				, self = this.self
 				, fn = self.live[type]
 				, ret
 			;
@@ -501,17 +587,19 @@
 		 * Рассылка событий об изменения модификатора
 		 *
 		 * @private
-		 * @param {String} mod
-		 * @param {Boolean} state
-		 * @param {Boolean} inner
-		 * @return {Boolean}
+		 * @param	{String}	mod
+		 * @param	{Boolean}	state
+		 * @param	{Boolean}	[inner]
+		 * @return	{Boolean}
 		 */
 		_emitMod: function (mod, state, inner){
 			var
 				  fn
 				, onMod	= this.onMod
 				, ret	= inner || onMod['*'].call(this, mod, state)
-				, strState = typeof state === 'string'
+				, isStr = typeof state === 'string'
+				, fnType
+				, strState
 			;
 
 			if( ret !== false ){
@@ -521,17 +609,23 @@
 					ret	= false;
 				}
 				else if( fn ){
-					if( typeof fn == 'string' ){
+					fnType = typeof fn;
+
+					if( fnType === 'string' ){
 						ret	= this[fn](state, mod);
-					} else if( typeof fn === 'object' ){
-						if( fn['*'] !== undef ) ret = fn['*'].call(this, state, mod);
-						if( ret !== false && fn[strState ? state : (state ? 'yes' : '')] !== undef ) fn[state].call(this, state, mod);
+					}
+					else if( fnType === 'object' ){
+						if( fn['*'] !== undef )
+							ret = fn['*'].call(this, state, mod);
+
+						if( ret !== false && fn[strState = (isStr ? state : (state ? 'yes' : ''))] !== undef )
+							ret = fn[strState].call(this, state, mod);
 					} else {
 						ret	= fn.call(this, state, mod);
 					}
 				}
 
-				if( ret !== false && inner !== true && this._emitMod(mod + (strState ? state : (state ? '_yes' : '_no')), state, true) === false ){
+				if( ret !== false && inner !== true && this._emitMod(mod +'_'+ (isStr ? state : (state ? 'yes' : 'no')), state, true) === false ){
 					ret = false;
 				}
 			}
@@ -555,11 +649,11 @@
 		 * Получить функцию в контексте текущего объекъта
 		 *
 		 * @public
-		 * @param {Object|String} fn
-		 * @return {Function}
+		 * @param	{Object|String}	fn
+		 * @return	{Function}
 		 */
-		proxy: function (fn){
-			return	_proxy(this, fn, _slice.call(arguments, 1));
+		bound: function (fn){
+			return	_bound(this, fn, _slice.call(arguments, 1));
 		},
 
 
@@ -567,9 +661,9 @@
 		 * Название css-класс по имени модификатора
 		 *
 		 * @private
-		 * @param {String} mod
-		 * @param {String} state
-		 * @return {String}
+		 * @param	{String}	mod
+		 * @param	{String}	state
+		 * @return	{String}
 		 */
 		_modClassName: function (mod, state){
 			return	this.name +'_'+ mod + (state && typeof state === 'string' ? '_'+state: '');
@@ -580,9 +674,9 @@
 		 * Проверить/Добавить/Удалить модификатор
 		 *
 		 * @public
-		 * @param {String} name
-		 * @param {Boolean} state
-		 * @return {*}
+		 * @param	{String}	name
+		 * @param	{Boolean}	[state]
+		 * @return	{*}
 		 */
 		mod: function (name, state){
 			name = $.trim(name).split(_rspace);
@@ -607,8 +701,13 @@
 				mod	= name[i];
 				currentMod = _mods[mod];
 
+				if( currentMod === undef ){
+					currentMod = false;
+				}
+
 				if( currentMod != state ){
 					_mods[mod] = state;
+
 					if( this._emitMod(mod, state) !== false ){
 						classMod	= this._modClassName(mod, currentMod);
 						className	= (' '+el.className+' ').replace(' '+classMod+' ', ' ');
@@ -619,7 +718,9 @@
 						}
 
 						el.className = $.trim(className);
-					} else {
+					}
+					else {
+						// revert mod -- WTF????
 						_mods[mod]	= currentMod;
 					}
 				}
@@ -685,10 +786,18 @@
 		},
 
 
+		/**
+		 * Селектор
+		 *
+		 * @param	{String}	sel
+		 * @param	{Boolean}	[className]
+		 * @return	{String}
+		 */
 		s: function (sel, className){
-			sel = typeof sel === 'string'
-					? (sel.substr(0, 2) == '__' ? (className ? '' : '.')+ this.name + sel : sel)
-					: sel;
+			if( typeof sel === 'string' && sel.substr(0, 2) == '__' ){
+				sel	= (className ? '' : '.') + this.name + sel;
+			}
+
 			return	sel;
 		},
 
@@ -708,9 +817,9 @@
 		 * Найти все элементы, соответсвующие селектору
 		 *
 		 * @public
-		 * @param {String} sel
-		 * @param {Boolean} force
-		 * @return {jQuery}
+		 * @param	{String}	sel
+		 * @param	{Boolean}	[force]
+		 * @return	{jQuery}
 		 */
 		$: function (sel, force){
 			var ret = this.$el, cache = force ? false : this.cache, _cache = this._cache;
@@ -729,6 +838,10 @@
 			return	ret;
 		},
 
+		clearCache: function (){
+			this._cache = {};
+		},
+
 
 		__$attr: function (method, sel, name, val){
 			var ret = this, $el = ret.$el;
@@ -742,7 +855,7 @@
 
 
 			if( val === null ){
-				$el['remove'+method.charAt(0).toUpperCase()+method.substr(1)](name);
+				$el[$.camelCase('remove-'+method)](name);
 			}
 			else if( typeof name != 'string' || val !== undef ){
 				$el[method](name, val);
@@ -772,7 +885,6 @@
 			return	this.__$attr('prop', sel, name, val);
 		},
 
-
 		$css: function (sel, name, val){
 			return	this.__$attr('css', sel, name, val);
 		},
@@ -801,33 +913,68 @@
 			return	ret;
 		},
 
+
 		$closest: function (sel){
 			return	this.$el.closest(this.s(sel));
 		},
+
 
 		is: function ($elm, sel){
 			return	this.$(sel).is($elm);
 		},
 
-		gap: function (fn){
-			var ctx = this;
-			return	function (){
-				var args = arguments;
-				setTimeout(function (){
-					(typeof fn == 'string' ? ctx[fn] : fn).apply(ctx, args);
-				}, 0);
+
+		debounce: function (fn, delay){
+			var ctx = this, id, args;
+
+			if( typeof fn === 'string' ){
+				fn	= ctx[fn];
+			}
+
+			return function (){
+				args = arguments;
+				clearTimeout(id);
+				id = setTimeout(function (){
+					fn.apply(ctx, args);
+				}, ~~delay);
+			};
+		},
+
+		throttle: function(fn, delay) {
+			var id, args, needInvoke, ctx = this;
+
+			if( typeof fn === 'string' ){
+				fn	= ctx[fn];
+			}
+
+			return function _throttle(){
+				args = arguments;
+				needInvoke = true;
+
+				if( !id ) (function (){
+					if( needInvoke ){
+						fn.apply(ctx, args);
+						needInvoke = false;
+						id = setTimeout(_throttle, delay);
+					}
+					else {
+						id = null;
+					}
+				})();
 			};
 		},
 
 		onOutside: function (name, fn){
-			this.__self.$doc.on(this.eventNS(name), _proxy(this, fn));
+			this.self.$doc.on(this.eventNS(name), _bound(this, fn || returnFalse));
 			return	this;
 		},
 
+
 		offOutside: function (name){
-			this.__self.$doc.off(this.eventNS(name));
+			this.self.$doc.off(this.eventNS(name));
 			return	this;
 		},
+
 
 		one: function (name, sel, fn){
 			if( fn === undef ){
@@ -835,9 +982,10 @@
 				sel = undef;
 			}
 
-			this.$el.one(this.eventNS(name), this.s(sel), _proxy(this, fn));
+			this.$el.one(this.eventNS(name), this.s(sel), _bound(this, fn));
 			return	this;
 		},
+
 
 		hasOn: function (name, sel, fn){
 			if( typeof sel != 'string' ){
@@ -848,9 +996,11 @@
 			return	this.$(sel).hasOn(this.eventNS(name), fn);
 		},
 
+
 		hasOutside: function (name, fn){
-			return	this.__self.$doc.hasOn(this.eventNS(name), fn);
+			return	this.self.$doc.hasOn(this.eventNS(name), fn);
 		},
+
 
 		on: function (name, sel, fn){
 			if( fn === undef ){
@@ -858,34 +1008,48 @@
 				sel	= undef;
 			}
 
-			this.$el.on(this.eventNS(name), this.s(sel), _proxy(this, fn));
+			this.$el.on(this.eventNS(name), this.s(sel), _bound(this, fn || returnFalse));
 			return	this;
 		},
+
 
 		off: function (name, sel){
 			this.$el.off(this.eventNS(name), this.s(sel));
 			return	this;
 		},
 
+
 		trigger: function (event, args){
 			if( !this._silent ) this.$el.trigger(event, args);
 			return	this;
 		},
 
+
 		isDisabled: function (){
 			return	this.mod('disabled');
 		},
+
 
 		inDOM: function (){
 			var el = this.el;
 			return	el && (el = el.parentNode) && el.nodeType > 0;
 		},
 
+
+		toBEM: function (selector, name){
+			var $elem = this.$(selector);
+			if( !$elem.bem() ){
+				$elem.bem('add', name);
+			}
+			return	$elem.bem();
+		},
+
+
 		destroy: function (absolute){
 			this.destroy = F;
 			delete _collector[this.getId()];
 
-			var self = this.__self;
+			var self = this.self;
 
 			this.off();
 			this.$el
@@ -921,7 +1085,7 @@
 
 			if( names !== null ) for( i = names.length; i--; ){
 				_class = _classes[names[i]];
-				if( (_class !== undef) && !_class.active ){
+				if( (_class !== undef) && !_class.active && !_class.abstract ){
 					_queue--;
 					_class.init(node, evt);
 				}
@@ -931,7 +1095,7 @@
 		}
 
 		if( !_queue ){
-			$(document).off('click mouseover mousedown focusin change', _activation);
+			$(document).off('click leftclick mouseover mousedown focusin change', _activation);
 		}
 	};
 
@@ -939,48 +1103,79 @@
 	/**
 	 * Создаем поведение
 	 *
-	 * @param {Array} name
-	 * @param {Object} [methods]
-	 * @param {Object} [statics
+	 * @param	{Array}		name
+	 * @param	{String}	[extend]
+	 * @param	{Object}	[methods]
+	 * @param	{Object}	[statics
 	 */
-	$.bem = function (name, methods, statics){
+	$.bem = function (name, extend, methods, statics){
 		if( name.nodeType == 1 ){
 			return	_findInst(name);
-		}
-		else if( name === 'yes' ){
-			_yes = 'yes';
-			$.each(_eventMod, function (i, val){
-				val[1] = val[1] ? 'yes' : 0;
-			});
 		}
 		else {
 			if( typeof name == 'string' ){
 				if( _classes[name] ){
-					_classes[name].methods(methods, statics);
+					_classes[name].override(methods, statics);
 					return;
 				}
-				name = [0, name];
+			}
+
+			if( typeof extend != 'string' || !extend ){
+				statics	= methods;
+				methods	= extend;
+				extend	= undef;
 			}
 
 			var
-				  elm = name[0]
-				, Elm = _classes[elm] || Element
-				, force = statics && statics.force
+				  Elm = _classes[extend] || Element
+				, normal = !Elm.abstract
 			;
 
-			if( !force && !_queue && elm ){
-				$(document).on('click mouseover mousedown focusin change', _activation);
+			_classes[name] = Elm = Elm.extend(name, methods, statics);
+
+			if( !_queue && normal ){
+				$(document).on('click leftclick mouseover mousedown focusin change', _activation);
 			}
 
-			if( !force && elm ) _queue++;
-
-			name = name[1];
-
-			_classes[name] = Elm = Elm.extend(name, methods, statics);
-			if( force ){
-				Elm.init();
+			if( normal ){
+				_queue++;
 			}
 		}
+	};
+
+
+	/**
+	 * Инициализировать "принудительные" элементы
+	 *
+	 * @param	{jQuery}	$root
+	 */
+	$.bem.init = function ($root){
+		$.each(_classes, function (name, Elm/**Element*/){
+			if( Elm.forced ){
+				var
+					  sel = '.'+name
+					, $items = $root.find(sel).add($root.filter(sel))
+					, i = $items.length
+				;
+
+				while( i-- ){
+					Elm.init($items[i]);
+				}
+			}
+		});
+	};
+
+
+	/**
+	 * Переименовать элемент
+	 *
+	 * @param	{String}	name
+	 * @param	{String}	newName
+	 */
+	$.bem.rename = function (name, newName){
+		var Elm = _classes[newName] = _classes[name];
+		Elm._name = newName;
+		delete _classes[name];
 	};
 
 
@@ -1013,7 +1208,12 @@
 		var ret, args = arguments;
 
 		if( mod === undef ){
+			// Get BEM instance
 			return	_findInst(this[0]);
+		}
+		else if( mod == 'init' ){
+			// Init "forced" elements
+			$.bem.init(this);
 		}
 		else if( mod == 'add' ){
 			this.addClass(state).each(function (){
@@ -1030,8 +1230,10 @@
 		else {
 			this.each(function (Inst){
 				if( Inst = _findInst(this) ){
+					Inst.ready();
+
 					if( Inst[mod] === undef ){
-						ret	= Inst.ready().mod(mod, state);
+						ret	= Inst.mod(mod, state);
 					} else {
 						ret	= Inst[mod].apply(Inst, _slice.call(args, 1));
 					}
@@ -1060,13 +1262,34 @@
 	};
 
 
-	// ????
-	$(document).on('DOMNodeRemoved', function (node){
-		node = node.originalEvent.target;
-		if( node.nodeType == 1 ){
-			clearTimeout(_garbageCollectId);
-			_garbageCollectId = setTimeout($.bemGarbageCollect, 10000);
-		}
+	if( document[addEvent] ){
+		var _autoInit = function (){
+			$(_nodeInserted).bem('init');
+			_nodeInserted = [];
+		};
+
+		document[addEvent]('DOMNodeInserted', function (evt){
+			var node = evt.target;
+			if( node.nodeType == 1 ){
+				_nodeInserted.push(node);
+				clearTimeout(_nodeInsertedId);
+				_nodeInsertedId = setTimeout(_autoInit, 200);
+			}
+		}, false);
+
+		document[addEvent]('DOMNodeRemoved', function (evt){
+			var node = evt.target;
+			if( node.nodeType == 1 ){
+				clearTimeout(_nodeRemovedId);
+				_nodeRemovedId = setTimeout($.bemGarbageCollect, 10000);
+			}
+		}, false);
+	}
+
+
+	// DOMReady
+	$(function (){
+		$.bem.init($(document));
 	});
 
 	window.BEM = _classes;
