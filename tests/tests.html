@@ -1,20 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>b-name :: TESTS :: jQuery BEM</title>
+	<title>TESTS :: jQuery BEM</title>
 
 	<link href="qunit/qunit.css" rel="stylesheet"/>
 
-	<script src="http://code.jquery.com/jquery-1.7.2.js"></script>
+	<script src="jquery.min.js"></script>
 	<script src="jquery.simulate.js"></script>
 
 	<script src="qunit/qunit.js"></script>
 	<script src="qunit/qunit-composite.js"></script>
 
-	<script src="utils.js"></script>
-
-	<script src="../jquery.bem.js"></script>
-	<script src="../bem/jquery.bem.control.js"></script>
 	<style>
 		iframe.qunit-subsuite{
 			position: fixed;
@@ -35,8 +31,10 @@
 		QUnit.testSuites([
 			  'b-button/b-button.html'
 			, 'b-checkbox/b-checkbox.html'
+			, 'b-radio/b-radio.html'
 			, 'b-list/b-list.html'
 			, 'b-dropdown/b-dropdown.html'
+			, 'b-select/b-select.html'
 		]);
 	</script>
 </head>

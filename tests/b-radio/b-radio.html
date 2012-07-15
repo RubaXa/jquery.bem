@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>b-radio :: TESTS :: jQuery BEM</title>
+
+	<link href="../../static/style.css" rel="stylesheet"/>
+	<link href="../qunit/qunit.css" rel="stylesheet"/>
+
+	<script src="../jquery.min.js"></script>
+	<script src="../jquery.simulate.js"></script>
+
+	<script src="../qunit/qunit.js"></script>
+	<script src="../utils.js"></script>
+
+	<script src="../../jquery.bem.js"></script>
+	<script src="../../bem/jquery.bem.control.js"></script>
+
+	<script src="b-radio.js"></script>
+</head>
+<body>
+	<h1 id="qunit-header">b-radio</h1>
+	<h2 id="qunit-banner"></h2>
+	<div id="qunit-testrunner-toolbar"></div>
+	<h2 id="qunit-userAgent"></h2>
+	<ol id="qunit-tests"></ol>
+
+	<div style="margin: 30px;">
+
+		<span id="radio_a-1" class="js-tab b-radio b-radio_checked"><span class="b-radio__bubble"><input checked="checked" value="1" name="radio_a" type="radio"/></span></span> radio <br/>
+		<label id="radio_a-2-label"><span id="radio_a-2" class="js-tab b-radio"><span class="b-radio__bubble"><input value="2" name="radio_a" type="radio"/></span></span> radio in label</label> <br/>
+		<span id="radio_a-3" class="js-tab b-radio"><span class="b-radio__bubble"><input id="radio_a" value="3" name="radio_a" type="radio"/></span></span><label id="radio_a-3-label" for="radio_a"> radio + label[for]</label> <br/>
+
+		<br/>
+
+		<span id="radio_b-1" class="js-tab b-radio"><span class="b-radio__bubble"><input value="11" name="radio_b" type="radio"/></span></span> radio <br/>
+		<label id="radio_b-2-label"><span id="radio_b-2" class="js-tab b-radio"><span class="b-radio__bubble"><input value="22" name="radio_b" type="radio"/></span></span> radio in label</label> <br/>
+		<span id="radio_b-3" class="js-tab b-radio"><span class="b-radio__bubble"><input id="radio_b" value="33" name="radio_b" type="radio"/></span></span><label id="radio_b-3-label" for="radio_b"> radio + label[for]</label> <br/>
+
+	</div>
+</body>
+</html>
