@@ -9,74 +9,142 @@
 		, 40: 1 // down
 	};
 
-	$.expr[':'].listitemvisible = function (node){
-		return	node.offsetHeight > 5;
-	};
 
 	$.bem('b-list', {
+		elItem: 'item',
+
+		isFrozen: false,
+
+		loop: true,
+		canHover: true,
+		autoSelect: false,
+
+		boundAll: '_active _unactive _onHoverEnable',
+
 		_init: function (){
-			this.on('click', '__item', function (evt){
-				this.select(evt.currentTarget);
-				this._onKeyDown({ keyCode: 13 });
+			this.__item			= '__' + this.elItem;
+			this.__item_hover	= this.__item + '_hover';
+
+			this.on('click', this.__item, function (evt){
+				this._hoverItem(evt.currentTarget);
+				this._onKeyPress({ keyCode: 13, type: 'keyup' });
 			});
 		},
 
-		select: function (node){
+		_activeDebouce: function (){
+			clearTimeout(this._activeId);
+			this._activeId	= setTimeout(this._active, 0);
+		},
+
+		_unactiveDebounce: function (){
+			clearTimeout(this._activeId);
+			this._activeId	= setTimeout(this._unactive, 0);
+		},
+
+		_active: function (){
+			if( !this.hasOutside('keyup.list') ){
+				this.onOutside('keyup.list keydown.list', '_onKeyPress');
+			}
+		},
+
+		_unactive: function (){
+			this.offOutside('keyup.list keydown.list');
+
+			if( !this.hasMod('active') ){
+				// Deselect
+				this._hoverItem(null);
+			}
+		},
+
+		_hoverItem: function (node, byKey){
 			var
-				  sel = this.s('__item_hover')
-				, cnHover = sel.substr(1)
-				, $sel = this.$(sel)
+				  __item = this.__item
+				, _hover = this.s(__item + '_hover', 1)
+				, $sel = this.$('.'+_hover)
 				, selNode = $sel[0]
 				, $node
 			;
 
-			if( node === undef ){
-				return	$sel;
-			}
-			else if( node !== this.el ){
-				$node = $(node).closest(this.s('__item'), this.$el);
-				if( $node[0] !== selNode ){
-					$sel.removeClass(cnHover);
+			if( node && node !== this.el ){
+				$node = $(node).closest(this.s(__item), this.$el);
 
-					if( !$node.is(this.s('__item_disabled')) ){
-						$node.addClass(cnHover);
+				if( $node[0] !== selNode ){
+					$sel.removeClass(_hover);
+
+					if( !$node.is(this.s(__item + '_disabled')) ){
+						$node.addClass(_hover);
 					}
 					else {
 						$node[0] = undef;
 					}
 
-					this.trigger({ type: 'hoveritem', target: $node[0], relatedTarget: selNode });
+					if( $node[0] ){
+						this.trigger({
+							  type: 'hoverenter'
+							, index: this.$(__item).index($node)
+							, target: $node[0]
+							, relatedTarget: selNode
+							, keypress: !!byKey
+						});
+					}
+
+					this.trigger({
+						  type: 'hoverleave'
+						, index: this.$(__item).index(selNode)
+						, target: selNode
+						, keypress: !!byKey
+					});
 				}
+
+				$sel	= $node;
 			}
+
+			return	$sel;
+		},
+
+		_onHoverEnable: function (){
+			this._onHoverDisabled	= false;
 		},
 
 		_onHover: function (evt){
-			this.select(evt.currentTarget);
+			if( this.canHover && !this._onHoverDisabled ){
+				this._hoverItem(evt.currentTarget);
+			}
 		},
 
-		_onKeyDown: function (evt){
+		_onKeyPress: function (evt){
 			var
 				  key = evt.keyCode
+				, type = evt.type
+				, __item = this.__item
 				, $sel
-				, filter // jQuery rule
 			;
 
+
 			if( key in _keys ){
-				$sel	= this.select();
-				filter	= ':not('+this.s('__item_disabled')+'):listitemvisible';
+				$sel	= this._hoverItem();
 
 				if( key < 38 ){
-					if( $sel[0] ){
-						this.trigger({ type: 'selectitem', target: $sel[0] });
+					if( type == 'keyup' && $sel[0] ){
+						this.trigger({
+							  type:		'selectitem'
+							, target:	$sel[0]
+							, index:	this.$(__item).index($sel)
+						});
 					}
 				}
-				else {
-					$sel	= $sel[key == 40 ? 'nextAll' : 'prevAll'](filter).first();
-					filter	= this.s('__item') + filter;
+				else if( type == 'keydown' ){
+					if( evt.preventDefault ){
+						evt.preventDefault();
+					}
 
-					this.select($sel[0] ? $sel : this.$(filter)[key == 40 ? 'first' : 'last']());
+					clearTimeout(this._onHoverEnableId);
+					this._onHoverDisabled = true;
 
-					if( evt.preventDefault ) evt.preventDefault();
+					this.moveHover(key == 40 ? 1 : -1, true);
+				}
+				else if( type == 'keyup' ){
+					this._onHoverEnableId = setTimeout(this._onHoverEnable, 200);
 				}
 			}
 		},
@@ -85,26 +153,50 @@
 		onMod: {
 			'active focus': function (state, mod){
 				if( mod == 'focus' && state ){
-					if( this.autoSelect && !this.select()[0] ){
+					if( this.autoSelect && !this._hoverItem()[0] ){
 						// select first item
-						this._onKeyDown({ keyCode: 40 });
+						this._onKeyPress({ keyCode: 40 });
 					}
 				}
 
 				if( state ){
-					if( !this.hasOutside('keydown.list') ){
-						this.onOutside('keydown.list', '_onKeyDown');
-					}
+					this._activeDebouce();
 				}
 				else if( !(this.hasMod('active') && mod == 'focus' || this.hasMod('focus') && mod == 'active') ){
-					this.offOutside('keydown.list');
-					if( !this.hasMod('active') ){
-						// Deselect
-						this.select(null);
-					}
+					this._unactiveDebounce();
+				}
+			},
+
+			disabled: function (){
+				this.delMod('active focus');
+				this._unactive();
+			},
+
+			'*': function (mod, state){
+				if( state && this.isDisabled() ){
+					return	!~'active focus'.indexOf(mod);
 				}
 			}
+		},
+
+		freeze: function (state){
+			this._onHoverDisabled = state;
+		},
+
+		selectByIndex: function (idx){
+			return	this._hoverItem(this.$(this.__item)[idx]);
+		},
+
+		moveHover: function (offset, byKey){
+			var
+				  __item	= this.__item
+				, $items	= this.$(__item +':isVisible:not('+ this.s(__item + '_disabled') +')')
+				, idx		= $items.index(this._hoverItem())
+			;
+
+			return	this._hoverItem($items[idx+offset] || (!~idx || this.loop) && $items[offset > 0 ? 0 : $items.length-1], byKey);
 		}
+
 	}, {
 		mods: 'focus',
 
@@ -112,9 +204,9 @@
 			'focusin focusout': function (e){
 				this[e.type == 'focusin' ? 'on' : 'off']('focusin.list', function (evt){
 					if( evt.target !== this.el ){
-						var $node = $(evt.target).closest(this.s('__item'));
+						var $node = $(evt.target).closest(this.s(this.__item));
 						if( $node[0] ){
-							this.select($node);
+							this._hoverItem($node);
 						}
 					}
 				});
@@ -122,11 +214,12 @@
 
 			'mouseenter mouseleave': function (evt){
 				if( evt.type != 'mouseleave' ){
-					this.select(evt.target);
-					this.on('hover.list', '__item', '_onHover');
+					this._hoverItem(evt.target);
+					this.on('hover.list', this.__item, '_onHover');
 				} else {
+					var _hover = this.s(this.__item + '_hover', 1);
 					this.off('hover.list');
-					this.select(null);
+					this.$('.'+_hover).removeClass(_hover)
 				}
 			}
 		}

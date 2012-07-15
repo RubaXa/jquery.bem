@@ -207,7 +207,7 @@
 		New.lazy =
 		New.cache =
 		New.forced =
-		New.abstract = false;
+		New.inactive = false;
 
 		// Меняем прототип функции-пустышки, на текущий
 		F.prototype = proto;
@@ -289,9 +289,9 @@
 
 
 		/**
-		 * Абстрактный элемент, не добавляется в очеред на инициализацуию
+		 * Статус элемента элемент, не добавляется в очеред на инициализацуию
 		 */
-		abstract: false,
+		inactive: true,
 
 
 		mods: '',
@@ -327,7 +327,7 @@
 
 
 			if( !self.active ){
-				self.active = !self.abstract;
+				self.active = !self.inactive;
 
 				if( self.mods ) $.each(self.mods.split(_rspace), function (i, mod){
 					live.push(_autoMods[mod] || '');
@@ -1085,7 +1085,7 @@
 
 			if( names !== null ) for( i = names.length; i--; ){
 				_class = _classes[names[i]];
-				if( (_class !== undef) && !_class.active && !_class.abstract ){
+				if( (_class !== undef) && !_class.active && !_class.inactive ){
 					_queue--;
 					_class.init(node, evt);
 				}
@@ -1128,7 +1128,7 @@
 
 			var
 				  Elm = _classes[extend] || Element
-				, normal = !Elm.abstract
+				, normal = !Elm.inactive
 			;
 
 			_classes[name] = Elm = Elm.extend(name, methods, statics);

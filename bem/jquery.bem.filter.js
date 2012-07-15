@@ -1,5 +1,6 @@
 (function (document, $, undef){
 	var utils = {
+
 		findNodeByRegExp: function (node, val){
 			var res;
 
@@ -18,6 +19,7 @@
 			return	res;
 		},
 
+
 		wrapText: function (node, start, length, tag){
 			var rang;
 			if( document.body.createTextRange ){
@@ -34,6 +36,7 @@
 			}
 		},
 
+
 		selectNode: function (node){
 			var rang = document.createRange();
 			rang.selectNode(node);
@@ -49,85 +52,72 @@
 
 
 	$.bem('b-filter', {
-		bindAll: '_onFilter',
+		elList: 'list',
+		elItem: 'list__item',
+		elInput: 'input',
+		elHighlight: 'list__item__highlight',
 
+
+		boundAll: '_onFilter',
 		searchType: 'any',
 		ceseSensitive: false,
 
+
 		_init: function (){
+			this.__list			= '__' + this.elList;
+			this.__item			= '__' + this.elItem;
+			this.__input		= '__' + this.elInput;
+			this.__highlight	= '__' + this.elHighlight;
+
 			var span = document.createElement('span');
-			span.className = this._highlightClassName = this.s('__list__item__highlight', 1);
+			span.className = this._highlightClassName = this.s(this.__highlight, 1);
 			this._highlightNode	= span;
 		},
 
+
 		onMod: {
 			focus: function (state){
-				this[state ? 'on' : 'off']('keydown.filter', '__input', '_onKeyDown');
+				this[state ? 'on' : 'off']('keydown.filter', this.__input, '_onKeyPress');
 			}
 		},
 
-		_onKeyDown: function (){
+
+		_onKeyPress: function (){
 			clearTimeout(this._onFilterId);
-			this._onFilterId = setTimeout(this._onFilter, 150);
+			this._onFilterId = setTimeout(this._onFilter, 100);
 		},
+
 
 		_getSearchRegExp: function (val){
 			return	val && new RegExp((this.searchType == 'first' ? '^' : '')+val, this.ceseSensitive ? '' : 'i');
 		},
 
+
 		_onFilter: function (){
-			var
-				  val = this.$('__input').val()
-				, rval = this._getSearchRegExp(val)
-				, $items = this.$('__list').find('.js-filter-item')
-				, i = 0, n = $items.length, node, className
-				, yes = this.s('__list__item_filtered', 1)
-			;
-
-			for( ; i < n; i += 1 ){
-				className	= (' '+(node = $items[i]).className+' ')
-								.replace(' '+yes+' ', ' ')
-							;
-
-				if( node.__filtered ){
-					this.removeHighlight(node);
-					node.__filtered = false;
-				}
-
-				if( val.length ){
-					node.__filtered	= true;
-
-					if( this.filter(node, rval, val) ){
-						this.highlight(node, rval, val);
-					} else {
-						className +=  yes;
-					}
-				}
-
-				node.className	= $.trim(className);
-			}
-
-			this.trigger({ type: 'filter', value: val });
+			this.filter(this.$(this.__input).val());
 		},
 
-		filter: function (node, rval){
+
+		_filter: function (node, rval){
 			return	rval.test(node.textContent || node.innerText);
 		},
 
-		highlight: function (node, rval, val){
+
+		_highlight: function (node, rval, val){
 			if( node = utils.findNodeByRegExp(node, rval) ){
 				utils.wrapText(node, node.nodeValue.search(rval), val.length, this._highlightNode.cloneNode(true));
 			}
 		},
 
-		removeHighlight: function (node){
+
+		_removeHighlight: function (node){
 			var
 				  list = node.getElementsByTagName('span')
 				, i = list.length
 				, val
 				, node
-				, parent
 				, next
+				, parent
 			;
 
 			while( i-- ){
@@ -157,6 +147,40 @@
 					break;
 				}
 			}
+		},
+
+
+		filter: function (val){
+			var
+				  rval = this._getSearchRegExp(val)
+				, $items = this.$(this.__list).find('.js-filter-item')
+				, i = 0
+				, n = $items.length
+				, node
+				, yes = this.s(this.__item+'_filtered', 1)
+				, className
+			;
+
+			for( ; i < n; i += 1 ){
+				className	= ' '+ (node = $items[i]).className +' ';
+
+				if( ~className.indexOf(yes) ){
+					className = className.replace(' '+yes+' ', ' ');
+					this._removeHighlight(node);
+				}
+
+				if( val.length ){
+					if( this._filter(node, rval, val) ){
+						this._highlight(node, rval, val);
+					} else {
+						className +=  yes;
+					}
+				}
+
+				node.className	= $.trim(className);
+			}
+
+			this.trigger({ type: 'filter', value: val });
 		}
 	}, {
 		mods: 'focus'

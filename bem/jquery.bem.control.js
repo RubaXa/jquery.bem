@@ -115,7 +115,7 @@
 	}, {
 		mods: 'hover press focus',
 		live: { leftclick: 'onClick' },
-		abstract: true
+		inactive: true
 	});
 
 
