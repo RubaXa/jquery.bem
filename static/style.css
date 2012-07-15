@@ -121,9 +121,52 @@ body {
 		.cbx_checked .cbx__checkmark, .b-checkbox_checked .b-checkbox__checkmark {
 			background-image: url('./cbx__checkmark.png');
 		}
-
-
 /* --- /CHECKBOX -- */
+
+
+/* --- RADIO -- */
+.b-radio {
+	width: 11px;
+	height: 11px;
+	border: 1px solid rgba(155, 155, 155, .57);
+	display: inline-block;
+	position: relative;
+	border-radius: 100%;
+	overflow: hidden;
+}
+	.b-radio_focus {
+		border: 1px solid #4D90FE;
+	}
+
+	.b-radio_hover {
+		-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.2);
+		-moz-box-shadow: inset 0 1px 1px rgba(0,0,0,.2);
+		box-shadow: inset 0 1px 1px rgba(0,0,0,.2);
+	}
+
+	.b-radio input {
+		width: 0;
+		height: 0;
+		opacity: 0;
+		overflow: hidden;
+	}
+
+	.b-radio__bubble {
+		top: 3px;
+		left: 3px;
+		width: 5px;
+		height: 5px;
+		display: block;
+		overflow: hidden;
+		position: absolute;
+		visibility: hidden;
+		border-radius: 100%;
+		background-color: #666;
+	}
+		.b-radio_checked .b-radio__bubble {
+			visibility: visible;
+		}
+/* --- /RADIO -- */
 
 
 /* -- DROPDOWN -- */
@@ -138,7 +181,7 @@ body {
 		opacity: .5;
 	}
 
-	.b-dropdown__link {
+	.b-dropdown__ctrl {
 		color: #06c;
 		cursor: pointer;
 		outline: 4px solid #eee;
@@ -151,18 +194,18 @@ body {
 		-o-transition: all .2s ease;
 		transition: all .2s ease;
 	}
-		.b-dropdown__link_focus,
-		.b-dropdown__link_hover {
+		.b-dropdown__ctrl_focus,
+		.b-dropdown__ctrl_hover {
 			outline-color: #ccc;
 			background-color: #ccc;
 		}
 
-		.b-dropdown__link_hover {
+		.b-dropdown__ctrl_hover {
 			color: #f60;
 			border-color: #f60;
 		}
 
-		.b-dropdown__link_expanded {
+		.b-dropdown__ctrl_expanded {
 			color: #fff;
 			border: none;
 			outline-color: #06c;
@@ -247,6 +290,106 @@ body {
 				background-color: #ffee6e;
 			}
 /* --- /FILTER --- */
+
+
+/* --- SELECT --- */
+.b-select {
+	display: inline-block;
+	position: relative;
+	max-width: 200px;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	user-select: none;
+}
+	.b-select select {
+		width: 0;
+		position: absolute;
+		visibility: hidden;
+	}
+
+	.b-select__ctrl {
+		border: 1px solid #999;
+		padding: 1px 20px 1px 5px;
+		border-radius: 4px;
+		background: -moz-linear-gradient(top, #fff 0%, #f5f5f5 49%, #ececec 50%, #eee 100%); /* FF3.6+ */
+		background: -webkit-linear-gradient(top, #fff 0%,#f5f5f5 49%,#ececec 50%,#eee 100%); /* Chrome10+,Safari5.1+ */
+		background: -o-linear-gradient(top, #fff 0%,#f5f5f5 49%,#ececec 50%,#eee 100%); /* Opera 11.10+ */
+		background: -ms-linear-gradient(top, #fff 0%,#f5f5f5 49%,#ececec 50%,#eee 100%); /* IE10+ */
+		background: linear-gradient(to bottom, #fff 0%,#f5f5f5 49%,#ececec 50%,#eee 100%); /* W3C */
+	}
+		.b-select__ctrl_expanded {
+		}
+
+		.b-select__ctrl:after {
+			top: 9px;
+			right: 8px;
+			width: 0;
+			height: 0;
+			content: '';
+			display: block;
+			position: absolute;
+			border-style: solid;
+			border-width: 4px 4px 0;
+			border-color: #777 transparent;
+		}
+
+		.b-select__ctrl_focus {
+			border-color: #fa0;
+			box-shadow: 0 0 2px #fa0;
+		}
+
+	.b-select__options {
+		top: 25px;
+		left: 0;
+		width: 100%;
+		padding: 5px 0;
+		box-shadow: 0 1px 7px rgba(0,0,0,.55);
+		border-radius: 4px;
+		display: none;
+		z-index: 10000;
+		overflow: auto;
+		position: absolute;
+		background-color: #fff;
+		white-space: nowrap;
+	}
+		.b-select__options_expanded {
+			display: block;
+		}
+
+	.b-select__options__optgroup__label {
+		color: #ccc;
+		font-weight: bold;
+		padding-left: 20px;
+	}
+
+		.b-select__options__optgroup .b-select__options__option {
+			padding-left: 40px;
+		}
+
+		.b-select__options__option {
+			padding-top: 2px;
+			padding-left: 20px;
+			padding-bottom: 3px;
+		}
+			.b-select__options__option_hover {
+				color: #fff;
+				cursor: pointer;
+				background-color: #3366cc;
+			}
+
+			.b-select__options__option_disabled {
+				color: #ccc;
+			}
+
+			.b-select__options__option_selected:before {
+				left: 0;
+				width: 20px;
+				content: '√ ';
+				display: block;
+				position: absolute;
+				text-align: center;
+			}
+/* --- /SELECT --- */
 
 
 .b-todos {

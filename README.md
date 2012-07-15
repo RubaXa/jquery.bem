@@ -3,26 +3,64 @@
 Это инструмент, предназначенный для описания поведения DOM элемента в BEM терминологии.
 
 
+## Зачем это нужно?
+
+Каждый из нас, хоть раз, да и сталкиваться с задачей, в рамках которой
+нужно стилизовать элемент формы или сделать какой-то свой контрол и тут
+приходилось сделать выбор, отправиться в гугл или написать самому, знакомая
+история, не правда ли?
+
+Библиотеки попадались разные, но у них было одно общее, их нужно
+иницализировать, есть конечно те, которые это делают по DOMReady, но
+что делать с теми элементами, которые мы создали позже, например
+получив контен через ajax? Также, инициализация по DOMReady замедляет
+загрузку страници, а еще мы могли ни разу не использовать какой-то
+элемент или все сразу, тогда зачем нужно было тратить рессурсы на их
+инициализацию?
+
+Все эти проблемы меня очень печалели, а ведь хотелось простого, чтобы
+все работало само и понадобности, как бы смешно это не звучало :]
+
+Мысль сформировалась давно и не нова, суть её проста, в верстке мы используем
+CSS для описания стиля элемента, описываем селектор и дальше применяем его
+к нужным элементам, еще есть BEM (блок, элемент, модификатор), осталось
+только описать поведение для этого нужного блока, и дело в шляпе
+
+
+Для себя я сформировал следующие требования:
+ * Все должно быть в верстке, а не генерироваться скриптом
+ * Инициализация происходит по надобнасти
+ * Поведение максимально приближено к нативному
+ * Прозрачность как для верстальшика, так и разработчика
+ * Расширямость (написание своих компонентов)
+
+
+Спустя время я получил иструмент, который позволял мне описывать поведение
+элемента для нужного селектора, а именно, если мы применяем класс `b-button`,
+то этот элемент будет вести себя, как кнопка, со всеми вытекающими состояниями
+и событиями и нам не нужно беспокоиться о его инициализиции.
+
+
 ## Пример 1
 Рассмотрим простой пример, вам нужно, чтобы при наведении на элемент, к нему добавлялся
 модификатор `_hover`, а при фокусе (например при помощи tab) `_focus`:
 ```html
-<a href="#" class="my-elem" tabindex="1">link</a>
+<a href="#" class="link" tabindex="1">link</a>
 или
-<span class="my-elem" tabindex="2">...</span>
+<span class="link" tabindex="2">...</span>
 ```
 ```js
-$.bem('my-elem', null, {
+$.bem('link', null, {
 	// static methods and properties
 	mods: 'focus hover'
 });
 ```
 
 
-И все, больше никаких телодвижений, теперь если вы наведетись на элемент с классом "my-elem",
+И все, больше никаких телодвижений, теперь если вы наведетесь на элемент с классом "link",
 то получите:
 ```html
-<a href="#" class="my-elem my-elem_hover" tabindex="1">link</a>
+<a href="#" class="link link_hover" tabindex="1">link</a>
 ```
 
 
@@ -37,12 +75,17 @@ $.bem('my-elem', null, {
 ```js
 $.bem('b-input', {
 	_onKeyUpCalc: function (){
+		// Работа с элементами, внутри блока
 		this.$('__length').text( this.$('__input').val().length );
+
+		// можно и так
+		// this.$('.b-input__length').text( this.$(':input').val().length );
 	}
 }, {
-	cache: true, // кешировать все выборки
+	cache: true, // кешировать выборки
 	live: {
 		'focusin focusout': function (evt){
+			// обработчик события "keyup" назначаем в зависимости от фокуса
 			this[evt.type == 'focusin' ? 'on' : 'off']('keyup.calc', '_onKeyUpCalc');
 		}
 	}
@@ -183,10 +226,21 @@ $.bem(['b-button', 'b-submit'], {
 ```html
 <span class="b-checkbox">
 	<span class="b-checkbox__checkmark">
-		<input type="checkbox"/>
+		<input name="cbx" type="checkbox"/>
 	</span>
 </span>
 ```
+
+
+### b-radio  <-  b-checkbox
+```html
+<span class="b-radio">
+	<span class="b-radio__bubble">
+		<input name="radio" type="radio"/>
+	</span>
+</span>
+```
+
 
 ### b-list
  * UP/DOWN arrows — move "b-list\_\_item\_hover" between "b-list\_\_item"
@@ -207,22 +261,21 @@ $.bem(['b-button', 'b-submit'], {
  * Space OR Enter — toggle "expanded"
  * UP/DOWN arrows — move "b-dropdown\_\_list\_\_item" between "b-dropdown\_\_list\_\_item\_hover", if before include b-list
  * b-dropdown_expanded
- * b-dropdown__link_focus
- * b-dropdown__link_hover
- * b-dropdown__link_expanded
+ * b-dropdown__ctrl_focus
+ * b-dropdown__ctrl_hover
+ * b-dropdown__ctrl_expanded
  * b-dropdown__list_expanded
  * b-dropdown\_\_list\_\_item\_hover — if before define b-list
 
 ```html
 <div class="b-dropdown">
-	<div class="b-dropdown__link">text</div>
+	<div class="b-dropdown__ctrl">text</div>
 	<div class="b-dropdown__list">
 		<div class="b-dropdown__list__item">item 1</div>
 		<div class="b-dropdown__list__item">item 2</div>
 	</div>
 </div>
 ```
-
 
 
 ### b-filter
@@ -267,9 +320,11 @@ $.bem(extend`:Array`, methods`:Object`, statics`:Object`);
 
 
 ### Свойства класса
- * .__self`:BEM` — ссылка на класс, для доступа к статическим методам и свойствам
- * .bildAll`:String` — название методов, которые нужно выполнять в контексте экземпляра класса
+ * .self`:BEM` — ссылка на класс, для доступа к статическим методам и свойствам
+ * .boundAll`:String` — название методов, через пробел которые нужно привязать к контексту инстанса
+ * .debouceAll`:String` — формат записи "methodName:mSec"
  * .cache`:Boolean` — кешировать выборки
+ * .forced`:Boolean` — инициализировать объект сразу, после его появления
  * .uniqId`:Number` — уникальный модификатор в рамках BEM-элементов
  * .role`:String` — role-атрибут
  * .$el`:jQuery` — ссылка на jQuery-элемент
@@ -280,8 +335,9 @@ $.bem(extend`:Array`, methods`:Object`, statics`:Object`);
 ### Методы класса
  * .init() — вызывается при инициализация объекта (@protected)
  * .getId()`:Number` — получить уникальный идентификатор
- * .proxy(fn`:Function|String`[, arg1[, argsN]])`:Function` — связать функцию с контекстом класса
- * .gap(fn`:Function|String`)`:Function` — аналогично .proxy(), но вызов функции будет произведен через 1ms
+ * .bound(fn`:Function|String`[, arg1[, argsN]])`:Function` — связать функцию с контекстом класса
+ * .debounce(fn`:Function|String`[, delay`:Number`])`:Function` — вызов функции будет произведен только один раз, через N ms
+ * .throttle(fn`:Function|String`[, delay`:Number`])`:Function` — вызов функции будет произведен только один раз в N ms
  * .hasMod(mod`:String`[, state`:Mixed`])`:Boolean` — проверить наличие модификатора
  * .addMod(mods`:String`[, state`:Mixed`])`:this` — добавить список модификатор, разделитель пробел
  * .delMod(mods`:String`[, state`:Mixed`])`:this` — убрать модификаторы

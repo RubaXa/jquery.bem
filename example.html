@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta charset="utf-8"/>
 	<title>Example :: jQuery BEM</title>
 
 	<link href="static/style.css" rel="stylesheet"/>
@@ -12,6 +13,7 @@
 	<script src="./bem/jquery.bem.list.js"></script>
 	<script src="./bem/jquery.bem.filter.js"></script>
 	<script src="./bem/jquery.bem.dropdown.js"></script>
+	<script src="./bem/jquery.bem.select.js"></script>
 
 </head>
 <body>
@@ -34,8 +36,53 @@
 
 
 	<div style="margin: 40px;">
+		<span class="js-tab b-radio"><span class="b-radio__bubble"><input value="1" name="radio_a" type="radio"/></span></span> radio <br/>
+		<label><span class="js-tab b-radio"><span class="b-radio__bubble"><input value="3" name="radio_a" type="radio"/></span></span> radio in label</label> <br/>
+		<span class="js-tab b-radio"><span class="b-radio__bubble"><input id="radio_a" value="4" name="radio_a" type="radio"/></span></span><label for="radio_a"> radio + label[for]</label> <br/>
+	</div>
+
+
+	<div style="margin: 40px;">
+
+		<div tabindex="4" class="b-select">
+			<select size="1">
+				<option value="0">zero</option>
+				<optgroup data-icon="first-group" label="group">
+					<option value="1">first in group</option>
+					<option value="2">second</option>
+				</optgroup>
+				<option data-icon="ico-three" value="3">3</option>
+				<option value="4" selected="selected">four</option>
+				<optgroup data-icon="second" label="-------">
+					<option value="5">five</option>
+					<option value="6">six</option>
+					<option value="7">seven</option>
+				</optgroup>
+				<option value="8">last</option>
+				<option disabled="disabled" value="-">disabled</option>
+			</select>
+
+			<div class="b-select__ctrl"></div>
+			<div class="b-select__options">
+				<div class="b-select__options__optgroup">
+					<div class="b-select__options__optgroup__label">
+						<span class="icon icon_{{data-icon}}"></span>
+						<span>{{label}}</span>
+					</div>
+				</div>
+				<div class="b-select__options__option">
+					<span class="icon icon_{{data-icon}}"></span>
+					<span>{{text}}</span>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+
+	<div style="margin: 40px;">
 		<div class="js-tab b-dropdown" tabindex="4">
-			<span class="b-dropdown__link">Dropdown</span>
+			<span class="b-dropdown__ctrl">Dropdown</span>
 			<div class="b-dropdown__list">
 				<div class="b-dropdown__list__item">item</div>
 				<div class="b-dropdown__list__item">item</div>
@@ -49,7 +96,7 @@
 		</div>
 
 		<div class="js-tab js-MoveTo b-dropdown" tabindex="5">
-			<span class="b-dropdown__link">Move to</span>
+			<span class="b-dropdown__ctrl">Move to</span>
 			<div class="b-dropdown__list">
 				<div class="b-filter">
 					<div class="b-dropdown__list__filter"><input type="text" class="b-filter__input"/></div>
@@ -87,7 +134,7 @@
 
 
 	<script>
-		$.bem(['b-checkbox', 'cbx']);
+		$.bem.rename('b-checkbox', 'cbx');
 
 		$('.js-MoveTo').on('expand', function (){
 			$('.b-dropdown :input:first').focus();
@@ -126,7 +173,7 @@
 						.toggleClass('b-todos__list__item_checked', !!cbx.checked)
 					;
 				})
-				.on('hoveritem', '.js-list', function (evt){
+				.on('hoverenter', '.js-list', function (evt){
 					var prev = evt.relatedTarget, node = evt.target;
 
 					if( prev ) $('.cbx', prev).focusout();
