@@ -56,6 +56,7 @@
 		elItem: 'list__item',
 		elInput: 'input',
 		elHighlight: 'list__item__highlight',
+		modItemFiltered: 'filtered',
 
 
 		boundAll: '_onFilter',
@@ -68,9 +69,12 @@
 			this.__item			= '__' + this.elItem;
 			this.__input		= '__' + this.elInput;
 			this.__highlight	= '__' + this.elHighlight;
+			this._itemFiltered	= this.__list +'_'+ this.modItemFiltered;
+
+			this._itemFilteredClassName	= this.s(this._itemFiltered, 1);
 
 			var span = document.createElement('span');
-			span.className = this._highlightClassName = this.s(this.__highlight, 1);
+			span.className = this.__highlightClassName = this.s(this.__highlight, 1);
 			this._highlightNode	= span;
 		},
 
@@ -118,11 +122,12 @@
 				, node
 				, next
 				, parent
+				, __highlight = ' '+this.__highlightClassName+' '
 			;
 
 			while( i-- ){
 				node = list[i];
-				if( ~node.className.indexOf(this._highlightClassName) ){
+				if( ~(' '+node.className+' ').indexOf(__highlight) ){
 					val		= node.innerHTML;
 					parent	= node.parentNode;
 
@@ -157,7 +162,7 @@
 				, i = 0
 				, n = $items.length
 				, node
-				, yes = this.s(this.__item+'_filtered', 1)
+				, yes = this._itemFilteredClassName
 				, className
 			;
 
@@ -166,6 +171,8 @@
 
 				if( ~className.indexOf(yes) ){
 					className = className.replace(' '+yes+' ', ' ');
+				}
+				else {
 					this._removeHighlight(node);
 				}
 
@@ -173,7 +180,7 @@
 					if( this._filter(node, rval, val) ){
 						this._highlight(node, rval, val);
 					} else {
-						className +=  yes;
+						className += yes;
 					}
 				}
 
