@@ -123,7 +123,7 @@
 			$.bem.rename('b-checkbox', 'cbx');
 
 			$('.js-MoveTo').on('expand', function (){
-				$('.b-dropdown :input:first').focus();
+				$('.b-dropdown :input:first').focus().val('').change();
 			});
 
 
