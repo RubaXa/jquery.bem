@@ -3,7 +3,7 @@
  * https://github.com/RubaXa/jquery.bem#readme
  *
  * @author	RubaXa	<trash@rubaxa.org>
- * @build	bem/jquery.bem.control bem/jquery.bem.list bem/jquery.bem.dropdown bem/jquery.bem.filter bem/jquery.bem.select
+ * @build	bem/jquery.bem.control bem/jquery.bem.list bem/jquery.bem.dropdown bem/jquery.bem.select
  */
 
 (function (window, document, $, undef){
