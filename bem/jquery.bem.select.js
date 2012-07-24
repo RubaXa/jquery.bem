@@ -37,7 +37,7 @@
 		debounceAll: '_searchInSelect:150',
 
 		multiple: false,
-		searchDelay: 1800,
+		searchDelay: 1500,
 
 		onMod: {
 			focus: function (state, mod){
