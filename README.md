@@ -1,6 +1,7 @@
 # jQuery BEM
 
 Это инструмент, предназначенный для описания поведения DOM элемента в BEM терминологии.
+[demo](http://rubaxa.github.com/jquery.bem/example.html)
 
 
 ## Зачем это нужно?
