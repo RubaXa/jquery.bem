@@ -21,18 +21,17 @@
 
 
 		wrapText: function (node, start, length, tag){
-			var rang;
-			if( document.body.createTextRange ){
-				rang = document.body.createTextRange();
-				rang.move('character', start);
-				rang.moveEnd(length);
-				rang.pasteHTML(tag.outerHTML.replace('></', '>'+rang.text+'</'));
-			}
-			else {
-				rang = document.createRange();
+			if( document.createRange ){
+				var rang = document.createRange();
 				rang.setStart(node, start);
 				rang.setEnd(node, start + length);
 				rang.surroundContents(tag);
+			}
+			else {
+				// @todo: use create selection
+				node = node.parentNode;
+				var html = node.innerHTML;
+				node.innerHTML = html.substr(0, start) + tag.outerHTML.replace('></', '>'+html.substr(start, length)+'</') + html.substr(start+length);
 			}
 		},
 
@@ -81,7 +80,7 @@
 
 		onMod: {
 			focus: function (state){
-				this[state ? 'on' : 'off']('keydown.filter', this.__input, '_onKeyPress');
+				this[state ? 'on' : 'off']('keydown.filter change.filter', this.__input, '_onKeyPress');
 			}
 		},
 
@@ -98,7 +97,7 @@
 
 
 		_onFilter: function (){
-			this.filter(this.$(this.__input).val());
+			this.filter(this.val());
 		},
 
 
@@ -154,10 +153,13 @@
 			}
 		},
 
+		val: function (){
+			return	this.$(this.__input).val();
+		},
 
 		filter: function (val){
 			var
-				  rval = this._getSearchRegExp(val)
+				  rval = this._getSearchRegExp(val = val === undef ? this.val() : val)
 				, $items = this.$(this.__list).find('.js-filter-item')
 				, i = 0
 				, n = $items.length
