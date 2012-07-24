@@ -4,7 +4,7 @@
 
 (function ($, undef){
 	var
-		  $dummy = $('<p/>')
+		  $dummy = $('<div/>')
 		, _rtpl = /\{\{([^\}]+)\}\}/g
 		, _keys = {
 			  38: -1 // up
@@ -298,7 +298,7 @@
 				.css({
 					  top: Y + Hs + 5
 					, left:	0
-					, width: $options.prop('scrollWidth') + 15
+					, width: $options.prop('scrollWidth') + 20
 					, height: Math.min(Hw, Math.max(H, Hi*5)) - 5
 					, position: 'absolute'
 				})
