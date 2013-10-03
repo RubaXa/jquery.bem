@@ -22,6 +22,7 @@
 
 		, _rname = /\b([a-z\d-]+(?:__[a-z\d-]+)*)\b/ig // Получить именно название селектора из this.className, но не его модификаторы
 		, _rspace = /\s+/g // Повторяющиеся пробелы
+		, _relemSelector = /\b__/g // быстрый селектор по элементам в БЕМ терминалогии
 
 		//  Класса, который описывает поведение
 		, Element = function (){ this.__lego.apply(this, arguments); }
@@ -161,7 +162,7 @@
 	$.fn.hasOn = function (name, fn){
 		var events = this.data('events'), ns = name.split('.'), i, has = false;
 
-		name = ns.splice(0, 1);
+		name = ns.splice(0, 1)[0];
 		events = events && events[name];
 
 		if( events ){
@@ -291,7 +292,7 @@
 		/**
 		 * Статус элемента элемент, не добавляется в очеред на инициализацуию
 		 */
-		inactive: true,
+		inactive: false,
 
 
 		mods: '',
@@ -794,11 +795,16 @@
 		 * @return	{String}
 		 */
 		s: function (sel, className){
-			if( typeof sel === 'string' && sel.substr(0, 2) == '__' ){
-				sel	= (className ? '' : '.') + this.name + sel;
+			if( typeof sel == 'string' && /__/.test(sel) ){
+				sel = sel.replace(_relemSelector, (className ? '' : '.') + this.name + '__');
 			}
 
 			return	sel;
+		},
+
+
+		c: function (sel){
+			return	this.s(sel, 1);
 		},
 
 

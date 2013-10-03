@@ -392,48 +392,76 @@ body {
 /* --- /SELECT --- */
 
 
-.b-todos {
-	width: 400px;
-	padding: 10px 30px 15px 15px;
+/* --- b-tags --- */
+.b-tags {
+	overflow: hidden;
+	padding-top: 5px;
+	padding-left: 5px;
+	padding-right: 5px;
+	position: relative;
 	border-radius: 5px;
-	box-shadow: 0 0 4px rgba(0,0,0,.4);
 }
-	.b-todos__h1 {
-		margin: 0 0 10px;
-		text-align: center;
+	.b-tags_hover {
+		box-shadow: 0 0 3px rgba(0,0,0,.65);
 	}
-	.b-todos__inp {
-		width: 100%;
-		padding: 6px;
-		font-size: 24px;
-		box-shadow: rgba(0, 0, 0, 0.2) 0 1px 2px 0 inset;
+	.b-tags_focus {
+		box-shadow: 0 0 3px rgba(0,0,255,.65);
 	}
 
-	.b-todos__list {
-		margin-top: 10px;
-		padding-top: 10px;
-		margin-bottom: 10px;
-		padding-bottom: 10px;
+	.b-tags__tag {
+		color: #fff;
+		display: inline-block;
+		position: relative;
+		padding: 1px 15px 2px 5px;
+		margin-right: 5px;
+		margin-bottom: 5px;
+		font-size: 15px;
+		font-family: "Arial", Helvetica, Garuda, sans-serif;
+		border-radius: 8px;
+		background-color: #81A4C9;
+		overflow: hidden;
+		border: 2px solid transparent;
 	}
-		.b-todos__list_active {
-		}
-
-		.b-todos__list__item {
+		.b-tags__tag__text {
 			display: block;
-			padding: 4px 10px;
-			background-color: #fff;
-			-webkit-transition: all .2s ease;
-			-moz-transition: all .2s ease;
-			-ms-transition: all .2s ease;
-			-o-transition: all .2s ease;
-			transition: all .2s ease;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
 		}
-			.b-todos__list__item_hover {
-				background-color: #eee;
+		.b-tags__tag_hover {
+			background-color: #81CCC9;
+		}
+
+		.b-tags__tag_new {
+			padding: 0 4px 1px;
+			background-color: #CCD5DE;
+		}
+
+		.b-tags__tag_focus {
+			border: 2px solid blue;
+		}
+
+		.b-tags__tag__remove {
+			top: 0;
+			right: 3px;
+			cursor: pointer;
+			display: block;
+			position: absolute;
+		}
+			.b-tags__tag__remove:after {
+				color: red;
+				content: 'x';
+				font-weight: normal;
 			}
-			.b-todos__list__item .cbx {
-				margin-right: 10px;
-			}
-			.b-todos__list__item_checked {
-				text-decoration: line-through;
-			}
+
+	.b-tags__input {
+		color: #000;
+		width: 0;
+		border: 0;
+		margin: 0;
+		outline: 0;
+		font-size: 15px;
+		font-family: "Arial", Helvetica, Garuda, sans-serif;
+		background-color: transparent;
+	}
+/* --- /b-tags --- */
