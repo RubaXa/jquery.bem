@@ -368,8 +368,9 @@ $.bem(className`:String`, extend`:String`, methods`:Object`, statics`:Object`);
  * .destroy() — уничтожить экземпляр класса
  * .destroy(true) — уничтожить + удалить связанные элемент
 
+---
 
-## Пример работы с onMod
+### Пример работы с onMod
 ```js
 onMod: {
 	size: {
@@ -392,6 +393,32 @@ onMod: {
 	'*': function (mod/**String*/, state/**Mixed*/){
 		// (1) Call before set modifier
 		// return false, to break
+	}
+}
+```
+
+---
+
+### onElemMod
+```js
+{
+	'element': {
+		'modName': function ($el, state, mod, elemName) {
+			// ..
+		},
+
+		'*': function ($el, mod, state, elemName) {
+			// установка любого модификатор
+		}
+	},
+
+
+	// установка любого модификатор, на любой элемент
+	'*': function ($el, elemName, mod, state) {
+		if (this.isDisabled()) { // блок задизаблен
+			// Запрещаем смену модификаторов у элементов
+			return false;
+		}
 	}
 }
 ```

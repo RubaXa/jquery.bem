@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>b-block :: TESTS :: jQuery BEM</title>
+
+	<link href="../../static/style.css" rel="stylesheet"/>
+	<link href="../qunit/qunit.css" rel="stylesheet"/>
+
+	<script src="../jquery.min.js"></script>
+	<script src="../jquery.simulate.js"></script>
+
+	<script src="../qunit/qunit.js"></script>
+	<script src="../utils.js"></script>
+
+	<script src="../../jquery.bem.js"></script>
+
+	<script src="b-block.js"></script>
+</head>
+<body>
+	<h1 id="qunit-header">b-block</h1>
+	<h2 id="qunit-banner"></h2>
+	<div id="qunit-testrunner-toolbar"></div>
+	<h2 id="qunit-userAgent"></h2>
+	<ol id="qunit-tests"></ol>
+
+	<div style="margin: 30px;">
+
+		<div class="b-block">
+			<div class="b-block__foo">foo</div>
+			<div class="b-block__bar b-block__bar_baz">bar</div>
+			<div class="b-block__qux b-block__qux_mod_state">qux</div>
+		</div>
+
+	</div>
+</body>
+</html>

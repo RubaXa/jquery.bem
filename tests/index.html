@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>TESTS :: jQuery BEM</title>
+
+	<link href="qunit/qunit.css" rel="stylesheet"/>
+
+	<script src="jquery.min.js"></script>
+	<script src="jquery.simulate.js"></script>
+
+	<script src="qunit/qunit.js"></script>
+	<script src="qunit/qunit-composite.js"></script>
+
+	<style>
+		iframe.qunit-subsuite{
+			position: fixed;
+			bottom: 0;
+			left: 0;
+
+			margin: 0;
+			padding: 0;
+			border-width: 1px 0 0;
+			height: 45%;
+			width: 100%;
+
+			background: #fff;
+		}
+	</style>
+
+	<script>
+		QUnit.testSuites([
+			  'b-button/b-button.html'
+			, 'b-checkbox/b-checkbox.html'
+			, 'b-radio/b-radio.html'
+			, 'b-list/b-list.html'
+			, 'b-dropdown/b-dropdown.html'
+			, 'b-select/b-select.html'
+			, 'b-block/b-block.html'
+		]);
+	</script>
+</head>
+<body>
+	<h1 id="qunit-header">jQuery BEM Test Suite</h1>
+	<h2 id="qunit-banner"></h2>
+	<div id="qunit-testrunner-toolbar"></div>
+	<h2 id="qunit-userAgent"></h2>
+	<ol id="qunit-tests"></ol>
+	<div id="qunit-fixture"></div>
+</body>
+</html>

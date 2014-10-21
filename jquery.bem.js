@@ -192,6 +192,7 @@
 			  key
 			, self = this
 			, onMod = {}
+			, onElemMod = {}
 			, proto = self.fn
 			// Создаем новый класс
 			, New = function (){
@@ -235,25 +236,30 @@
 
 		// Переносим обработчики от родителя
 		_inherit(onMod, proto.onMod);
+		_inherit(onElemMod, proto.onElemMod);
 
 		// Переопределяем методы класса
 		if( methods ){
-			_inherit(onMod, methods.onMod || {}, proto.onMod);
+			$.each({ 'onMod': onMod, 'onElemMod': onElemMod }, function (name, onMod) {
+				_inherit(onMod, methods[name] || {}, proto[name]);
 
-			$.each(onMod, function (key, fn){
-				delete onMod[key];
-				key = key.split(_rspace);
-				for( var i = 0; i < key.length; i++ ){
-					onMod[key[i]] = fn;
-				}
+				$.each(onMod, function (key, fn){
+					delete onMod[key];
+					key = key.split(_rspace);
+
+					for( var i = 0; i < key.length; i++ ){
+						onMod[key[i]] = fn;
+					}
+				});
+
+				delete methods[name];
 			});
-
-			delete methods.onMod;
 
 			_inherit(New.fn, methods, proto);
 		}
 
 		New.fn.onMod = onMod;
+		New.fn.onElemMod = onElemMod;
 
 		return	New;
 	};
@@ -262,7 +268,7 @@
 	// Определяем статические методы
 	$.extend(Element, {
 		/**
-		 * Еденый обработчик событий для всех эклемпляров
+		 * Единый обработчик событий для всех эклемпляров
 		 *
 		 * @private
 		 * @param {Event} evt
@@ -420,7 +426,9 @@
 		self: Element,
 
 		onMod: { '*': F },
+		onElemMod: { '*': F },
 
+		role: null,
 		boundAll: '',
 		debounceAll: '',
 
@@ -441,8 +449,8 @@
 		__lego: function (node, name){
 			$.extend(this, (node.onclick || $.noop)() || {});
 
-			this.name	= name || this.self.getName();
-			this.cache	= this.self.cache;
+			this.name = name = (name || this.self.getName());
+			this.cache = this.self.cache;
 
 			this.$el	= $(node).removeAttr('onclick');
 			this.el		= this.$el[0];
@@ -450,15 +458,31 @@
 			this._mods	= {};
 			this._cache	= {};
 
-			_collector[this.uniqId] = this;
+			this.block = name;
+			this.element = '';
+
+			if (this.name.indexOf('__') > -1) {
+				// Это элемент
+				var tmp = name.split('__');
+				this.block = tmp[0];
+				this.element = tmp[1];
+				this.$el.trigger('bem:element:init');
+			}
+
 
 			var attrs = this.self.attrs || {};
+
 			attrs[_idAttr] = this.uniqId;
-			if( this.role ) attrs.role = this.role;
+			_collector[this.uniqId] = this;
+
+			if (this.role) {
+				attrs.role = this.role;
+			}
 
 			this.$attr(attrs);
+			this.on('bem:element:mod', '_onElemMod');
 
-			if( this.self.lazy ){
+			if (this.self.lazy) {
 				this.debounce('ready')();
 			} else {
 				this.ready();
@@ -630,7 +654,73 @@
 				}
 			}
 
+			if (ret !== false && inner !== true && this.element) {
+				var evt = $.Event('bem:element:mod');
+
+				this.$el.trigger(evt, {
+					$el: this.$el,
+					block: this.block,
+					element: this.element,
+					name: mod,
+					state: state
+				});
+
+				if (evt.isDefaultPrevented()) {
+					ret = false;
+				}
+			}
+
 			return	ret;
+		},
+
+
+		_emitElemMod: function ($elem, elemName, mod, state) {
+			var fn,
+				onElemMod = this.onElemMod,
+				ret = onElemMod['*'].call(this, $elem, elemName, mod, state);
+
+			if (ret !== false) {
+				// Получаем элемент
+				fn = onElemMod[elemName];
+
+				if (fn === false) {
+					ret = false;
+				}
+				else if (fn) {
+					if (fn['*'] !== void 0) {
+						// Установка любого модификатора
+						ret = fn['*'].call(this, $elem, mod, state, elemName);
+					}
+
+					if (ret !== false && (fn = fn[mod])) {
+						if (fn.call(this, $elem, state, mod, elemName) === false) {
+							ret = false;
+						}
+					}
+					else if (fn === false) {
+						ret = false;
+					}
+				}
+			}
+
+			return ret;
+		},
+
+
+		/**
+		 * Слушаем события на изменения модификатора у элементов
+		 * @param  {Event} evt
+		 * @param  {Object}  mod
+		 * @private
+		 */
+		_onElemMod: function (evt, mod) {
+			if (mod.block === this.block && !this.element) {
+				evt.stopPropagation();
+
+				if (this._emitElemMod(mod.$el, mod.element, mod.name, mod.state) === false) {
+					evt.preventDefault();
+				}
+			}
 		},
 
 
@@ -1296,6 +1386,8 @@
 	$(function (){
 		$.bem.init($(document));
 	});
+
+	$(document).on('bem:element:init', _activation);
 
 	window.BEM = _classes;
 })(window, document, jQuery);
