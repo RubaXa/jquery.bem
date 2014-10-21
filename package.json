@@ -1,0 +1,22 @@
+{
+	"name": "jquery.bem",
+	"version": "0.2.0",
+	"devDependencies": {
+		"grunt": "~0.4.0",
+		"grunt-version": "*",
+		"grunt-contrib-uglify": "*",
+		"grunt-contrib-concat": "*"
+	},
+	"description": "jQuery BEM",
+	"main": "jquery.bem.js",
+	"scripts": {
+		"test": "grunt test"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/rubaxa/jquery.bem.git"
+	},
+	"keywords": ["jquery", "bem"],
+	"author": "Konstantin Lebedev <ibnRubaXa@gmail.com>",
+	"license": "MIT"
+}
