@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>b-select :: TESTS :: jQuery BEM</title>
+
+	<link href="../../static/style.css" rel="stylesheet"/>
+	<link href="../qunit/qunit.css" rel="stylesheet"/>
+
+	<script src="../jquery.min.js"></script>
+	<script src="../jquery.simulate.js"></script>
+
+	<script src="../qunit/qunit.js"></script>
+	<script src="../utils.js"></script>
+
+	<script src="../../jquery.bem.js"></script>
+	<script src="../../bem/jquery.bem.control.js"></script>
+	<script src="../../bem/jquery.bem.list.js"></script>
+	<script src="../../bem/jquery.bem.dropdown.js"></script>
+	<script src="../../bem/jquery.bem.select.js"></script>
+
+	<script src="b-select.js"></script>
+</head>
+<body>
+	<h1 id="qunit-header">b-select</h1>
+	<h2 id="qunit-banner"></h2>
+	<div id="qunit-testrunner-toolbar"></div>
+	<h2 id="qunit-userAgent"></h2>
+	<ol id="qunit-tests"></ol>
+
+	<div style="margin: 30px;">
+
+		<div id="select" tabindex="2" class="b-select">
+			<select size="1">
+				<option value="0">zero</option>
+				<optgroup data-icon="first-group" label="group">
+					<option value="1">first in group</option>
+					<option value="2">second</option>
+				</optgroup>
+				<option data-icon="ico-three" value="3">3</option>
+				<option value="4">four</option>
+				<optgroup data-icon="second" label="-------">
+					<option value="5">five</option>
+					<option value="6">six</option>
+					<option value="7">seven</option>
+				</optgroup>
+				<option value="8">last</option>
+				<option disabled="disabled" value="-">disabled</option>
+			</select>
+
+			<div class="b-select__ctrl">zero</div>
+			<div class="b-select__options">
+				<div class="b-select__options__optgroup">
+					<div class="b-select__options__optgroup__label">
+						<span class="icon icon_{{data-icon}}"></span>
+						<span>{{label}}</span>
+					</div>
+				</div>
+				<div class="b-select__options__option">
+					<span class="icon icon_{{data-icon}}"></span>
+					<span>{{text}}</span>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<div id="Numbers" class="b-select" tabindex="3">
+		<div class="b-select__ctrl">0</div>
+		<div class="b-select__options">
+			<div class="b-select__options__option">{{text}}</div>
+		</div>
+	</div>
+
+	<div style="margin: 30px">
+		<select size="1">
+			<option value="0">zero</option>
+			<optgroup data-icon="first-group" label="group">
+				<option value="1">first in group</option>
+				<option value="2">second</option>
+			</optgroup>
+			<option data-icon="ico-three" value="3">3</option>
+			<option value="4">four</option>
+			<optgroup data-icon="second" label="-------">
+				<option value="5">five</option>
+				<option value="6">six</option>
+				<option value="7">seven</option>
+			</optgroup>
+			<option value="8">last</option>
+			<option disabled="disabled" value="-">disabled</option>
+		</select>
+
+	</div>
+
+	<div style="height: 500px;"></div>
+
+	<script>
+		(function (){
+			/**
+			 * @type {Number}
+			 */
+			var i = 0;
+
+			/**
+			 * @type {HTMLElement}
+			 */
+			var Select = document.createElement('select');
+
+
+			for( ; i < 100; i++ ){
+				Select.add(new Option(i));
+			}
+
+			document.getElementById('Numbers').appendChild(Select);
+		})();
+	</script>
+
+</body>
+</html>

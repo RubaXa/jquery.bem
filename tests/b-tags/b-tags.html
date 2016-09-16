@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>b-tags :: TESTS :: jQuery BEM</title>
+
+	<link href="../../static/style.css" rel="stylesheet"/>
+	<link href="../qunit/qunit.css" rel="stylesheet"/>
+
+	<script src="http://code.jquery.com/jquery-1.7.2.js"></script>
+	<script src="../jquery.simulate.js"></script>
+
+	<script src="../qunit/qunit.js"></script>
+	<script src="../utils.js"></script>
+
+	<script src="../../jquery.bem.js"></script>
+	<script src="../../bem/jquery.bem.tags.js"></script>
+
+	<script src="b-tags.js"></script>
+</head>
+<body>
+	<h1 id="qunit-header">b-tags</h1>
+	<h2 id="qunit-banner"></h2>
+	<div id="qunit-testrunner-toolbar"></div>
+	<h2 id="qunit-userAgent"></h2>
+	<ol id="qunit-tests"></ol>
+
+	<div style="margin: 30px; padding: 10px; xborder: 1px solid red; max-width: 250px">
+
+		<div class="js-test-1 b-tags" tabindex="1">
+			<span class="b-tags__tag"><span class="b-tags__tag__text">foo</span><b class="b-tags__tag__remove"></b></span><!--
+			--><span class="b-tags__tag"><span class="b-tags__tag__text">bar</span><b class="b-tags__tag__remove"></b></span><!--
+			--><span class="b-tags__tag"><span class="b-tags__tag__text">car</span><b class="b-tags__tag__remove"></b></span><!--
+			--><span style="display: none" class="b-tags__tag b-tags__tag_new"><span class="b-tags__tag__text"><input value="" class="b-tags__input" tabindex="-1" /></span><b class="b-tags__tag__remove"></b></span>
+		</div>
+
+		<br />
+
+		<div class="js-test-2 b-tags" tabindex="2">
+			<div class="b-tags__inner" style="width: 3000px;">
+				<span class="b-tags__tag"><span class="b-tags__tag__text">inner</span><b class="b-tags__tag__remove"></b></span><!--
+				--><span class="b-tags__tag"><span class="b-tags__tag__text">tags</span><b class="b-tags__tag__remove"></b></span><!--
+				--><span class="b-tags__tag"><span class="b-tags__tag__text">fags</span><b class="b-tags__tag__remove"></b></span><!--
+				--><span class="b-tags__tag"><span class="b-tags__tag__text">bugs</span><b class="b-tags__tag__remove"></b></span><!--
+				--><span style="display: none" class="b-tags__tag b-tags__tag_new"><span class="b-tags__tag__text"><input value="" class="b-tags__input" tabindex="-1"/></span><b class="b-tags__tag__remove"></b></span>
+			</div>
+		</div>
+
+	</div>
+</body>
+</html>

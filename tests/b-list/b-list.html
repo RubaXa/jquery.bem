@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>b-list :: TESTS :: jQuery BEM</title>
+
+	<link href="../../static/style.css" rel="stylesheet"/>
+	<link href="../qunit/qunit.css" rel="stylesheet"/>
+
+	<script src="../jquery.min.js"></script>
+	<script src="../jquery.simulate.js"></script>
+
+	<script src="../qunit/qunit.js"></script>
+	<script src="../utils.js"></script>
+
+	<script src="../../jquery.bem.js"></script>
+	<script src="../../bem/jquery.bem.control.js"></script>
+	<script src="../../bem/jquery.bem.list.js"></script>
+
+	<script src="b-list.js"></script>
+</head>
+<body>
+	<h1 id="qunit-header">b-list</h1>
+	<h2 id="qunit-banner"></h2>
+	<div id="qunit-testrunner-toolbar"></div>
+	<h2 id="qunit-userAgent"></h2>
+	<ol id="qunit-tests"></ol>
+
+	<div style="margin: 30px;">
+
+		<div id="list" class="b-list">
+			<div class="b-list__item">1</div>
+			<div class="b-list__item">2</div>
+			<div class="b-list__item b-list__item_disabled">3</div>
+			<div class="b-list__item">4</div>
+			<div class="b-list__item b-list__item_disabled">5</div>
+			<div class="b-list__item b-list__item_disabled">6</div>
+		</div>
+
+	</div>
+
+</body>
+</html>
